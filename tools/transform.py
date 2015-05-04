@@ -47,8 +47,6 @@ def filter_by_region(prod):
 
 def filter_by_salary(salary):
     num = salary_pattern.match(salary)
-    print salary
-    print num.group()
     if not num:
         return True
     num = int(num.group())
@@ -112,6 +110,7 @@ def transform(source_table, dest_table):
     for prod in cursor:
         try:
             print prod['id'] + ' ' + prod['title']
+            filter_flag = False    
             ban_word = filter_by_ban_words(prod)
             if ban_word != '':
                 inv_prod = {}
@@ -119,31 +118,30 @@ def transform(source_table, dest_table):
                 inv_prod['reason'] = 'Filter by word: ' + ban_word
                 print inv_prod['reason']
                 invalid_table.save(inv_prod)
-                source_table.remove(prod)
-                continue
-            if filter_by_tel(prod['tel']):
+                filter_flag = True
+            elif filter_by_tel(prod['tel']):
                 inv_prod = {}
                 inv_prod['id'] = prod['id']
                 inv_prod['reason'] = 'Filter by tel: ' + prod['tel']
                 print inv_prod['reason']
                 invalid_table.save(inv_prod)
-                source_table.remove(prod)
-                continue
-            if filter_by_region(prod):
+                filter_flag = True
+            elif filter_by_region(prod):
                 inv_prod = {}
                 inv_prod['id'] = prod['id']
                 inv_prod['reason'] = 'Filter by region: not in Beijing'
                 print inv_prod['reason']
                 invalid_table.save(inv_prod)
-                source_table.remove(prod)
-                continue
-            if filter_by_salary(prod['salary']):
+                filter_flag = True
+            elif filter_by_salary(prod['salary']):
                 inv_prod = {}
                 inv_prod['id'] = prod['id']
                 inv_prod['reason'] = 'Filter by salary'
                 print inv_prod['reason']
                 invalid_table.save(inv_prod)
-                source_table.remove(prod)
+                filter_flag = True
+            if filter_flag:
+                #source_table.remove(prod)
                 continue
             prod['icon'] = select_icon(prod)
             prod['send'] = False
@@ -152,7 +150,7 @@ def transform(source_table, dest_table):
             dest_table.save(prod)
         except Exception as e:
             print e
-            source_table.remove(prod)
+            #source_table.remove(prod)
             continue
 
 if __name__ == "__main__":

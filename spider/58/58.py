@@ -98,6 +98,8 @@ def crawl_tel(url):
         tel = rec_tel(url)
         print 'rec tel: ' + tel
         try:
+            if tel[:3] == "400" and len(tel.replace('-','')) != 10:
+                continue
             t = int(tel.replace('-',''))
             return tel
         except:
