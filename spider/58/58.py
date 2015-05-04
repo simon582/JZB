@@ -115,6 +115,12 @@ def crawl_detail(prod):
     page_id = hxs.xpath('//input[@id="pagenum"]/@value')[0].extract().split('_')[0].strip()
     tel_url = tel_img + page_id
     prod['tel'] = crawl_tel(tel_url)
+    prod['content'] = ''
+    zhiwei_div = hxs.xpath('//div[@class="zhiwei"]')
+    text_list = zhiwei_div.xpath('.//text()')
+    for text in text_list:
+        prod['content'] += text.extract().strip()
+    print 'content: ' + prod['content'] 
 
 def save(prod):
     if prod['vertical']:
@@ -156,7 +162,7 @@ def work(list_url):
 
 if __name__ == "__main__":
     start_url = "http://bj.58.com/jianzhi/pn#CUR_PAGE#/?PGTID=14301271136300.9558278887998313&ClickID=1"
-    page = 78
+    page = 1
     while work(start_url.replace('#CUR_PAGE#',str(page))):
         page += 1
         if page > 100:

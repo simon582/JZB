@@ -29,6 +29,8 @@ def filter_by_ban_words(prod):
             return ban_word
         if prod['company'].find(ban_word) != -1:
             return ban_word
+        if prod['content'].find(ban_word) != -1:
+            return ban_word
     return ''
 
 def filter_by_tel(tel):
@@ -91,16 +93,16 @@ def select_icon(prod):
         return '日结'
     if prod['title'].find('周结') != -1 or prod['salary'].find('周结') != -1:
         return '周结'
-    if prod['title'].find('实习') != -1:
+    if prod['title'].find('实习') != -1 or prod['content'].find('实习') != -1:
         return '实习'
     for word in pro_words_list:
-        if prod['title'].find(word) != -1:
+        if prod['title'].find(word) != -1 or prod['content'].find(word) != -1:
             return '专业'
     for word in sim_words_list:
-        if prod['title'].find(word) != -1:
+        if prod['title'].find(word) != -1 or prod['content'].find(word) != -1:
             return '简单'
     for word in fre_words_list:
-        if prod['title'].find(word) != -1:
+        if prod['title'].find(word) != -1 or prod['content'].find(word) != -1:
             return '灵活'
     return '其他'
 
@@ -117,7 +119,7 @@ def transform(source_table, dest_table):
                 inv_prod['reason'] = 'Filter by word: ' + ban_word
                 print inv_prod['reason']
                 invalid_table.save(inv_prod)
-                #source_table.remove(prod)
+                source_table.remove(prod)
                 continue
             if filter_by_tel(prod['tel']):
                 inv_prod = {}
@@ -125,7 +127,7 @@ def transform(source_table, dest_table):
                 inv_prod['reason'] = 'Filter by tel: ' + prod['tel']
                 print inv_prod['reason']
                 invalid_table.save(inv_prod)
-                #source_table.remove(prod)
+                source_table.remove(prod)
                 continue
             if filter_by_region(prod):
                 inv_prod = {}
@@ -133,7 +135,7 @@ def transform(source_table, dest_table):
                 inv_prod['reason'] = 'Filter by region: not in Beijing'
                 print inv_prod['reason']
                 invalid_table.save(inv_prod)
-                #source_table.remove(prod)
+                source_table.remove(prod)
                 continue
             if filter_by_salary(prod['salary']):
                 inv_prod = {}
@@ -141,7 +143,7 @@ def transform(source_table, dest_table):
                 inv_prod['reason'] = 'Filter by salary'
                 print inv_prod['reason']
                 invalid_table.save(inv_prod)
-                #source_table.remove(prod)
+                source_table.remove(prod)
                 continue
             prod['icon'] = select_icon(prod)
             prod['send'] = False
@@ -150,7 +152,7 @@ def transform(source_table, dest_table):
             dest_table.save(prod)
         except Exception as e:
             print e
-            #source_table.remove(prod)
+            source_table.remove(prod)
             continue
 
 if __name__ == "__main__":

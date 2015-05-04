@@ -35,6 +35,7 @@ def dump(table):
         resline += prod['addr'] + ','
         resline += prod['create_time'] + ','
         resline += prod['icon'] + ','
+        resline += prod['url'] + ','
         print >> dump_file, resline.encode('utf-8')
 
 if __name__ == "__main__":
