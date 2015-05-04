@@ -129,6 +129,7 @@ def work(list_url):
     for info in info_list:
         try:
             prod = {}
+            prod['source'] = '58'
             prod['url'] = info.xpath('./dt/a/@href')[0].extract()
             print 'url: ' + prod['url']
             prod['title'] = info.xpath('./dt/a/text()')[0].extract().strip()
