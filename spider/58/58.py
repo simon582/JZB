@@ -20,6 +20,7 @@ try:
     vertical_temp_table = conn['jzb']['vertical_temp']
     job_table = conn['jzb']['job']
     vertical_job_table = conn['jzb']['vertical_job']
+    invalid_table = conn['jzb']['invalid']
 except Exception as e:
     print e
     exit(-1)
@@ -69,6 +70,8 @@ def get_html_by_data(url, use_cookie=False, fake_ip=False):
     return html
 
 def exist(id):
+    if invalid_table.find({"id":id}).count() > 0:
+        return True
     if temp_table.find({"id":id}).count() > 0:
         return True
     if vertical_temp_table.find({"id":id}).count() > 0:
