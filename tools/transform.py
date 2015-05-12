@@ -141,7 +141,8 @@ def transform(source_table, dest_table):
                 invalid_table.save(inv_prod)
                 filter_flag = True
             if filter_flag:
-                #source_table.remove(prod)
+                source_table.remove({"id":prod['id']})
+                print 'Remove in source table: ' + prod['id']
                 continue
             prod['icon'] = select_icon(prod)
             prod['send'] = False
@@ -150,7 +151,8 @@ def transform(source_table, dest_table):
             dest_table.save(prod)
         except Exception as e:
             print e
-            #source_table.remove(prod)
+            source_table.remove({"id":prod['id']})
+            print 'Remove in source table: ' + prod['id']
             continue
 
 if __name__ == "__main__":

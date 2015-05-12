@@ -16,7 +16,7 @@ except Exception as e:
     print e
     exit(-1)
 
-dump_file = open('jzb.csv','a')
+dump_file = open('jzb_2015_5_6.csv','a')
 
 def dump(table):
     cursor = table.find()
