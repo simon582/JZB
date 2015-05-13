@@ -81,14 +81,23 @@ def crawl_detail(prod):
     prod['tel'] = hxs.xpath('//span[@id="isShowPhoneTop"]/img/@src')[0].extract()
     prod['tel'] = 'http://' + prod['url'].split('/')[2] + prod['tel']
     print 'tel: ' + prod['tel']
-    '''
     prod['content'] = ''
-    zhiwei_div = hxs.xpath('//div[@class="zhiwei"]')
+    zhiwei_div = hxs.xpath('//div[@class="deta-Corp"]')
     text_list = zhiwei_div.xpath('.//text()')
     for text in text_list:
         prod['content'] += text.extract().strip()
     print 'content: ' + prod['content'] 
-    '''
+    prod['salary'] = ''
+    li_list = hxs.xpath('//ul[@class="clearfix pos-relat"]/li[@class="fl"]')
+    for li in li_list:
+        try:
+            key = li.xpath('./text()')[0].extract()
+            if key.find('薪资待遇') != -1:
+                prod['salary'] = li.xpath('./em/text()')[0].extract()
+                break
+        except:
+            continue
+    print 'salary: ' + prod['salary']
 
 def save(prod):
     if prod['vertical']:
@@ -120,9 +129,9 @@ def work(list_url):
             if exist(prod['id']):
                 continue
             crawl_detail(prod)
-            #save(prod)
+            save(prod)
             import pdb;pdb.set_trace()
-            time.sleep(1)
+            time.sleep(2)
         except Exception as e:
             print e
             continue
