@@ -107,45 +107,22 @@ def crawl_tel(url):
 
 def crawl_detail(prod):
     hxs = Selector(text=get_html_by_data(prod['url'], fake_ip=True))
-    prod['create_time'] = hxs.xpath('//span[@class="date right yellow"]/text()')[0].extract().strip()
-    prod['create_time'] = prod['create_time'].replace('发布时间:','').strip()
+    prod['create_time'] = hxs.xpath('//span[@class="timeD"]/text()')[0].extract().strip()
     print 'create_time: ' + prod['create_time']
-    li_list = hxs.xpath('//div[@class="box clearfix"]/ul[@class="left"]/li')
-    prod['company'] = ''
-    prod['salary'] = ''
-    prod['address'] = ''
-    for li in li_list:
-        try:
-            text = li.xpath('./text()')[0].extract()
-            key = text.split(':')[0].strip()
-            value = text.split(':')[1].strip()
-            k = ''
-            if key == "发布者":
-                k = 'company'
-            elif key == "工资待遇":
-                k = 'salary'
-            elif key == "详细地址":
-                k = 'address'
-            if k != '':
-                prod[k] = value
-        except:
-            continue
-    print 'company: ' + prod['company']
-    print 'salary: ' + prod['salary']
-    print 'address: ' + prod['address']
+    prod['contact'] = hxs.xpath('//div[@id="lianxi"]/dl/dd/text()')[0].extract().replace(' ','').replace('\r','').replace('\n','').split('(')[0].strip()
+    print 'contact: ' + prod['contact']
+    prod['addr'] = hxs.xpath('//div[@id="lianxi"]/dl[4]/dd/text()')[0].extract().strip()
+    print 'address: ' + prod['addr']
+    tel_img = hxs.xpath('//img[@name="plink"]/@src')[0].extract().strip()
+    page_id = hxs.xpath('//input[@id="pagenum"]/@value')[0].extract().split('_')[0].strip()
+    tel_url = tel_img + page_id
+    prod['tel'] = crawl_tel(tel_url)
     prod['content'] = ''
-    zhiwei_div = hxs.xpath('//div[@class="detail"]')
+    zhiwei_div = hxs.xpath('//div[@class="zhiwei"]')
     text_list = zhiwei_div.xpath('.//text()')
     for text in text_list:
         prod['content'] += text.extract().strip()
     print 'content: ' + prod['content'] 
-    prod['contact'] = hxs.xpath('//div[@class="box"]/ul/li/text()')[0].extract().replace(' ','').replace('\r','').replace('\n','').split(':')[1].strip()
-    print 'contact: ' + prod['contact']
-    tel_url = hxs.xpath('//div[@class="box"]/ul/li/img/@src')[0].extract().strip()
-    #print 'tel url: ' + tel_url
-    #prod['tel'] = crawl_tel(tel_url)
-    prod['tel'] = tel_url
-    print 'tel: ' + prod['tel']
 
 def save(prod):
     if prod['vertical']:
@@ -156,32 +133,35 @@ def save(prod):
 def work(list_url):
     print 'List url: ' + list_url
     hxs = Selector(text=get_html_by_data(list_url, fake_ip=True))
-    info_list = hxs.xpath('//ul[@id="content_list_wrap"]/li')
-    if len(info_list) == 0:
-        return False
+    info_list = hxs.xpath('//div[@id="all-list"]/ul/li')
     for info in info_list:
         try:
             prod = {}
-            prod['source'] = 'jianzhimao'
-            prod['url'] = 'http://' + list_url.split('/')[2] + info.xpath('./a/@href')[0].extract()
+            prod['source'] = 'jianzhiku'
+            prod['url'] = info.xpath('.//span[@class="table-view-body"]/a/@href')[0].extract()
+            prod['url'] = 'http://www.jianzhiku.com' + prod['url']
             print 'url: ' + prod['url']
-            prod['title'] = info.xpath('./a/text()')[0].extract().strip()
+            prod['title'] = info.xpath('.//span[@class="table-view-body"]/a/text()')[0].extract().strip()
             print 'title: ' + prod['title']
+            prod['company'] = info.xpath('./div[@class="table-view-block"]/text()')[0].extract().strip()
+            print 'company: ' + prod['company']
             prod['vertical'] = True
             print 'vertical: ' + str(prod['vertical'])
-            prod['id'] = hashlib.md5(prod['title']+prod['url']).hexdigest().upper()
+            prod['salary'] = info.xpath('./dd[@class="w133"]/text()')[0].extract().strip()
+            print 'salary: ' + prod['salary']
+            prod['id'] = hashlib.md5(prod['title']+prod['company']+prod['salary']).hexdigest().upper()
             if exist(prod['id']):
                 continue
-            crawl_detail(prod)
-            #import pdb;pdb.set_trace()
-            save(prod)
+            #crawl_detail(prod)
+            #save(prod)
+            import pdb;pdb.set_trace()
         except Exception as e:
             print e
             continue
     return True
 
 if __name__ == "__main__":
-    start_url = "http://beijing.jianzhimao.com/dbx_zbx_0/index#CUR_PAGE#.html"
+    start_url = "http://www.jianzhiku.com/c-bj/job-job/#CUR_PAGE#"
     page = 1
     while work(start_url.replace('#CUR_PAGE#',str(page))):
         page += 1
