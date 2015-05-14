@@ -6,9 +6,11 @@ import cookielib
 import pymongo
 import hashlib
 import StringIO
-import time
 from random import randint
 from scrapy import Selector
+sys.path.append('../../tesseract')
+from pytesser import *
+from PIL import Image
 reload(sys)
 sys.setdefaultencoding('utf-8')
 
@@ -22,6 +24,29 @@ try:
 except Exception as e:
     print e
     exit(-1)
+
+'''Recognize telephone image'''
+# 二值化
+threshold = 140
+table = []
+for i in range(256):
+    if i < threshold:
+        table.append(0)
+    else:
+        table.append(1)
+
+#对于识别成字母的 采用该表进行修正
+rep={'O':'0',
+    'U':'0',
+    'C':'0',
+    'D':'0',
+    'I':'1',
+    'H':'18',
+    'L':'1',
+    'Z':'2',
+    'S':'8',
+    'E':'8'
+    }
 
 def get_html_by_data(url, use_cookie=False, fake_ip=False):
     data = {}
@@ -57,6 +82,17 @@ def exist(id):
         return True
     return False
 
+def rec_tel(url):
+    im = Image.open(StringIO.StringIO(get_html_by_data(url,fake_ip=True)))
+    imgry = im.convert('L')
+    out = imgry.point(table,'1')
+    text = image_to_string(out)
+    text = text.strip()
+    text = text.upper()
+    for r in rep:
+        text = text.replace(r,rep[r])
+    return text
+
 def crawl_tel(url):
     while True:
         tel = rec_tel(url)
@@ -71,35 +107,27 @@ def crawl_tel(url):
 
 def crawl_detail(prod):
     hxs = Selector(text=get_html_by_data(prod['url'], fake_ip=True))
-    prod['create_time'] = hxs.xpath('//p[@class="fc70 mb-5"]/span[@class="txt"]/text()')[0].extract().strip()
-    prod['create_time'] = prod['create_time'].replace('更新时间：','').split(' ')[0]
-    if prod['create_time'].find('2015') == -1:
-        prod['create_time'] = '2015-' + prod['create_time']
+    prod['create_time'] = hxs.xpath('//span[@class="date right yellow"]/text()')[0].extract().strip()
+    prod['create_time'] = prod['create_time'].replace('发布时间:','').strip()
     print 'create_time: ' + prod['create_time']
-    prod['contact'] = hxs.xpath('//dl[@class="pos-relat"]/dd[1]/text()')[0].extract().replace(' ','').replace('\r','').replace('\n','').split('(')[0].replace('联系人：','').strip()
+    '''
+    prod['company'] = ''
+    prod['salary'] = ''
+    prod['contact'] = hxs.xpath('//div[@id="lianxi"]/dl/dd/text()')[0].extract().replace(' ','').replace('\r','').replace('\n','').split('(')[0].strip()
     print 'contact: ' + prod['contact']
-    prod['addr'] = hxs.xpath('//dl[@class="pos-relat"]/dd[3]/text()')[0].extract().replace('工作地点：','').strip()
+    prod['addr'] = hxs.xpath('//div[@id="lianxi"]/dl[4]/dd/text()')[0].extract().strip()
     print 'address: ' + prod['addr']
-    prod['tel'] = hxs.xpath('//span[@id="isShowPhoneTop"]/img/@src')[0].extract()
-    prod['tel'] = 'http://' + prod['url'].split('/')[2] + prod['tel']
-    print 'tel: ' + prod['tel']
+    tel_img = hxs.xpath('//img[@name="plink"]/@src')[0].extract().strip()
+    page_id = hxs.xpath('//input[@id="pagenum"]/@value')[0].extract().split('_')[0].strip()
+    tel_url = tel_img + page_id
+    prod['tel'] = crawl_tel(tel_url)
     prod['content'] = ''
-    zhiwei_div = hxs.xpath('//div[@class="deta-Corp"]')
+    zhiwei_div = hxs.xpath('//div[@class="zhiwei"]')
     text_list = zhiwei_div.xpath('.//text()')
     for text in text_list:
         prod['content'] += text.extract().strip()
     print 'content: ' + prod['content'] 
-    prod['salary'] = ''
-    li_list = hxs.xpath('//ul[@class="clearfix pos-relat"]/li[@class="fl"]')
-    for li in li_list:
-        try:
-            key = li.xpath('./text()')[0].extract()
-            if key.find('薪资待遇') != -1:
-                prod['salary'] = li.xpath('./em/text()')[0].extract().replace('（','').strip()
-                break
-        except:
-            continue
-    print 'salary: ' + prod['salary']
+    '''
 
 def save(prod):
     if prod['vertical']:
@@ -110,37 +138,30 @@ def save(prod):
 def work(list_url):
     print 'List url: ' + list_url
     hxs = Selector(text=get_html_by_data(list_url, fake_ip=True))
-    info_list = hxs.xpath('//dl[@class="list-noimg job-list"]|//dl[@class="list-img job-list"]')
+    info_list = hxs.xpath('//ul[@id="content_list_wrap"]/li')
     for info in info_list:
         try:
             prod = {}
-            prod['source'] = 'ganji'
-            prod['url'] = info.xpath('./dt/a/@href')[0].extract()
+            prod['source'] = 'jianzhimao'
+            prod['url'] = 'http://' + list_url.split('/')[2] + info.xpath('./a/@href')[0].extract()
             print 'url: ' + prod['url']
-            prod['title'] = info.xpath('./dt/a/text()')[0].extract().strip()
+            prod['title'] = info.xpath('./a/text()')[0].extract().strip()
             print 'title: ' + prod['title']
-            prod['company'] = info.xpath('./dd[@class="company"]/a/@title')[0].extract().strip()
-            print 'company: ' + prod['company']
-            ver = info.xpath('.//span[@class="icon-hr"]')
-            if len(ver) > 0:
-                prod['vertical'] = True
-            else:
-                prod['vertical'] = False
+            prod['vertical'] = True
             print 'vertical: ' + str(prod['vertical'])
-            prod['id'] = hashlib.md5(prod['title']+prod['company']+prod['source']).hexdigest().upper()
+            prod['id'] = hashlib.md5(prod['title']+prod['url']).hexdigest().upper()
             if exist(prod['id']):
                 continue
             crawl_detail(prod)
-            save(prod)
-            #import pdb;pdb.set_trace()
-            time.sleep(2)
+            import pdb;pdb.set_trace()
+            #save(prod)
         except Exception as e:
             print e
             continue
     return True
 
 if __name__ == "__main__":
-    start_url = "http://bj.ganji.com/jzxuesheng/e1i1l1o#CUR_PAGE#/"
+    start_url = "http://beijing.jianzhimao.com/dbx_zbx_0/index#CUR_PAGE#.html"
     page = 1
     while work(start_url.replace('#CUR_PAGE#',str(page))):
         page += 1
