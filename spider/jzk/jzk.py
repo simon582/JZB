@@ -100,25 +100,35 @@ def crawl_tel(url):
         try:
             if tel[:3] == "400" and len(tel.replace('-','')) != 10:
                 continue
-            t = int(tel.replace('-',''))
+            t = int(tel.replace('-','').replace(' ',''))
             return tel
         except:
             continue
 
 def crawl_detail(prod):
     hxs = Selector(text=get_html_by_data(prod['url'], fake_ip=True))
-    prod['create_time'] = hxs.xpath('//span[@class="timeD"]/text()')[0].extract().strip()
+    prod['create_time'] = hxs.xpath('//ul[@class="headtag"]/li/text()')[0].extract().strip()
+    prod['create_time'] = prod['create_time'].replace('更新时间：','').split(' ')[0]
     print 'create_time: ' + prod['create_time']
-    prod['contact'] = hxs.xpath('//div[@id="lianxi"]/dl/dd/text()')[0].extract().replace(' ','').replace('\r','').replace('\n','').split('(')[0].strip()
-    print 'contact: ' + prod['contact']
-    prod['addr'] = hxs.xpath('//div[@id="lianxi"]/dl[4]/dd/text()')[0].extract().strip()
-    print 'address: ' + prod['addr']
-    tel_img = hxs.xpath('//img[@name="plink"]/@src')[0].extract().strip()
-    page_id = hxs.xpath('//input[@id="pagenum"]/@value')[0].extract().split('_')[0].strip()
-    tel_url = tel_img + page_id
-    prod['tel'] = crawl_tel(tel_url)
+    dl_list = hxs.xpath('//div[@class="xq clearfix"]/dl')
+    for dl in dl_list:
+        try:
+            key = dl.xpath('./dt/text()')[0].extract().strip()
+            value = dl.xpath('./dd/text()')[0].extract().strip()
+            if key == '联系人：':
+                prod['contact'] = value
+                print 'contact: ' + prod['contact']
+            elif key == '联系方式：':
+                tel_url = 'http://www.jianzhiku.com/' + dl.xpath('./dd/img/@src')[0].extract()
+                prod['tel'] = crawl_tel(tel_url)
+                print 'tel: ' + prod['tel']
+            elif key == '工作地点：':
+                prod['address'] = value
+                print 'address: ' + prod['address']
+        except:
+            continue
     prod['content'] = ''
-    zhiwei_div = hxs.xpath('//div[@class="zhiwei"]')
+    zhiwei_div = hxs.xpath('//div[@class="jz-tabc"]')
     text_list = zhiwei_div.xpath('.//text()')
     for text in text_list:
         prod['content'] += text.extract().strip()
@@ -134,6 +144,8 @@ def work(list_url):
     print 'List url: ' + list_url
     hxs = Selector(text=get_html_by_data(list_url, fake_ip=True))
     info_list = hxs.xpath('//div[@id="all-list"]/ul/li')
+    if len(info_list) == 0:
+        return False
     for info in info_list:
         try:
             prod = {}
@@ -147,14 +159,14 @@ def work(list_url):
             print 'company: ' + prod['company']
             prod['vertical'] = True
             print 'vertical: ' + str(prod['vertical'])
-            prod['salary'] = info.xpath('./dd[@class="w133"]/text()')[0].extract().strip()
+            prod['salary'] = info.xpath('//span[@class="highlight"]/text()')[0].extract().strip()
             print 'salary: ' + prod['salary']
             prod['id'] = hashlib.md5(prod['title']+prod['company']+prod['salary']).hexdigest().upper()
             if exist(prod['id']):
                 continue
-            #crawl_detail(prod)
-            #save(prod)
-            import pdb;pdb.set_trace()
+            crawl_detail(prod)
+            save(prod)
+            #import pdb;pdb.set_trace()
         except Exception as e:
             print e
             continue
