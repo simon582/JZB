@@ -16,10 +16,31 @@ except Exception as e:
     print e
     exit(-1)
 
-pro_words_list = ['家教','翻译','摄影','摄像','软件操作','美术设计','口音采集','录音']
-sim_words_list = ['电话销售','客服','服务员','充场','礼仪','引导']
-fre_words_list = ['数据整理','文字编辑','市场推广','采单','派单','促销']
-ban_words_list = ['KTV','夜场','按摩','美容','文化','传播','传媒','营销','人力','咨询','调查','调研','顾问广告','商贸','食品','管理','顾问','食品饮料']
+pro_words_list = []
+sim_words_list = []
+fre_words_list = []
+ban_words_list = []
+print 'pro_words:'
+with open('pro_words.txt') as file:
+    for line in file.readlines():
+        pro_words_list.append(line.strip())
+        print line.strip()
+print 'sim_words:'
+with open('sim_words.txt') as file:
+    for line in file.readlines():
+        sim_words_list.append(line.strip())
+        print line.strip()
+print 'fre_words:'
+with open('fre_words.txt') as file:
+    for line in file.readlines():
+        fre_words_list.append(line.strip())
+        print line.strip()
+print 'ban_words:'
+with open('ban_words.txt') as file:
+    for line in file.readlines():
+        ban_words_list.append(line.strip())
+        print line.strip()
+
 tel_pattern = re.compile('((\d{11})|^((\d{7,8})|(\d{4}|\d{3})-(\d{7,8})|(\d{4}|\d{3})-(\d{7,8})-(\d{4}|\d{3}|\d{2}|\d{1})|(\d{7,8})-(\d{4}|\d{3}|\d{2}|\d{1}))$)')
 salary_pattern = re.compile('\d+')
 
