@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <form action="/words_manage/" method="post">
+        {% csrf_token %}
+        <select name="cat">
+            <option name="pro" value="pro">专业兼职词</option>
+            <option name="fre" value="fre">自由兼职词</option>
+            <option name="sim" value="sim">简单兼职词</option>
+            <option name="ban" value="ban">过滤词</option>
+        </select>
+        <input type="text" name="word" value="" id="word">
+        <input type="submit" name="submit" value="添加">
+        <input type="submit" name="submit" value="删除">
+
+        <p>
+        <table>
+            <tr>
+                <td>专业兼职词</td>
+                <td>自由兼职词</td>
+                <td>简单兼职词</td>
+                <td>过滤词</td>
+            <tr>
+            {% for prod in word_list %}
+                <tr>
+                    <td>{{ prod.pro }}</td>
+                    <td>{{ prod.fre }}</td>
+                    <td>{{ prod.sim }}</td>
+                    <td>{{ prod.ban }}</td>
+                </tr>
+            {% endfor %}
+        </table>
+    </form>
+{% endblock %}
+

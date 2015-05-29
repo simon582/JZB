@@ -16,7 +16,7 @@ except Exception as e:
     print e
     exit(-1)
 
-dump_file = open('jzb_2015_5_6.csv','a')
+dump_file = open('jzb_2015_5_28.csv','a')
 
 def dump(table):
     cursor = table.find()
@@ -38,6 +38,19 @@ def dump(table):
         resline += prod['url'] + ','
         print >> dump_file, resline.encode('utf-8')
 
+def convert(table):
+    cursor = table.find()
+    for prod in cursor:
+        if 'address' in prod:
+            print 'convert id: ' + prod['id']
+            prod['addr'] = prod['address']
+            table.remove({"id":prod["id"]})
+            del(prod['_id'])
+            del(prod['address'])
+            table.save(prod)
+
 if __name__ == "__main__":
+    #convert(job_table)
+    #convert(vertical_job_table)
     dump(job_table)
     dump(vertical_job_table)

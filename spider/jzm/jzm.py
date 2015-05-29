@@ -125,14 +125,14 @@ def crawl_detail(prod):
             elif key == "工资待遇":
                 k = 'salary'
             elif key == "详细地址":
-                k = 'address'
+                k = 'addr'
             if k != '':
                 prod[k] = value
         except:
             continue
     print 'company: ' + prod['company']
     print 'salary: ' + prod['salary']
-    print 'address: ' + prod['address']
+    print 'address: ' + prod['addr']
     prod['content'] = ''
     zhiwei_div = hxs.xpath('//div[@class="detail"]')
     text_list = zhiwei_div.xpath('.//text()')

@@ -1,0 +1,9 @@
+{% if request.user.is_authenticated %}
+	欢迎您：{{ request.user }}
+	<a class="btn danger small" href="{% url views.logout %}">注销</a>
+<form method="post" action="/accounts/logout/">
+	<input type="submit" value="退出登录"/>
+</form>
+{% else %}
+	请先登录！
+{% endif %}

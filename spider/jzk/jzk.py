@@ -123,8 +123,8 @@ def crawl_detail(prod):
                 prod['tel'] = crawl_tel(tel_url)
                 print 'tel: ' + prod['tel']
             elif key == '工作地点：':
-                prod['address'] = value
-                print 'address: ' + prod['address']
+                prod['addr'] = value
+                print 'address: ' + prod['addr']
         except:
             continue
     prod['content'] = ''

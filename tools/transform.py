@@ -20,26 +20,16 @@ pro_words_list = []
 sim_words_list = []
 fre_words_list = []
 ban_words_list = []
-print 'pro_words:'
-with open('pro_words.txt') as file:
-    for line in file.readlines():
-        pro_words_list.append(line.strip())
-        print line.strip()
-print 'sim_words:'
-with open('sim_words.txt') as file:
-    for line in file.readlines():
-        sim_words_list.append(line.strip())
-        print line.strip()
-print 'fre_words:'
-with open('fre_words.txt') as file:
-    for line in file.readlines():
-        fre_words_list.append(line.strip())
-        print line.strip()
-print 'ban_words:'
-with open('ban_words.txt') as file:
-    for line in file.readlines():
-        ban_words_list.append(line.strip())
-        print line.strip()
+word_table = conn['jzb']['word_conf']
+for prod in word_table.find():
+    if prod['cat'] == 'pro':
+        pro_words_list.append(prod['word'])
+    if prod['cat'] == 'sim':
+        sim_words_list.append(prod['word'])
+    if prod['cat'] == 'fre':
+        fre_words_list.append(prod['word'])
+    if prod['cat'] == 'ban':
+        ban_words_list.append(prod['word'])
 
 tel_pattern = re.compile('((\d{11})|^((\d{7,8})|(\d{4}|\d{3})-(\d{7,8})|(\d{4}|\d{3})-(\d{7,8})-(\d{4}|\d{3}|\d{2}|\d{1})|(\d{7,8})-(\d{4}|\d{3}|\d{2}|\d{1}))$)')
 salary_pattern = re.compile('\d+')
@@ -167,7 +157,6 @@ def transform(source_table, dest_table):
                 continue
             prod['icon'] = select_icon(prod)
             prod['send'] = False
-            prod['source'] = '58'
             del(prod['_id'])
             dest_table.save(prod)
         except Exception as e:

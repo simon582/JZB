@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+
+{% block content %}
+<form action="/accounts/add/" method="post">
+    {% csrf_token %}
+    <p>频道号：<input type="text" name="top_sid" value="" id="top_sid"></p>
+    <p>子频道号：<input type="text" name="sub_sid" value="" id="sub_sid"></p>
+    <p>机器人数量：<input type="text" name="robot_cnt" value="" id="robot_cnt"></p>
+    <p>HTTP代理：<input type="text" name="proxy" value="" id="proxy" style="width:400"></p>
+    <input type="submit" value="提交">
+</form>
+	<p><a href="/accounts/loggedin/">返回</a></p>
+
+{% endblock %}
