@@ -130,6 +130,42 @@ def transform(source_table, dest_table):
                 print inv_prod['reason']
                 invalid_table.save(inv_prod)
                 filter_flag = True
+            elif filter_by_region(prod):
+                inv_prod = {}
+                inv_prod['id'] = prod['id']
+                inv_prod['reason'] = 'Filter by region: not in Beijing'
+                print inv_prod['reason']
+                invalid_table.save(inv_prod)
+                filter_flag = True
+            if filter_flag:
+                source_table.remove({"id":prod['id']})
+                print 'Remove in source table: ' + prod['id']
+                continue
+            prod['icon'] = select_icon(prod)
+            prod['send'] = False
+            del(prod['_id'])
+            dest_table.save(prod)
+        except Exception as e:
+            print e
+            source_table.remove({"id":prod['id']})
+            print 'Remove in source table: ' + prod['id']
+            continue
+
+def transform_vertical(source_table, dest_table):
+    filter_by_agency(source_table)
+    cursor = source_table.find()
+    for prod in cursor:
+        try:
+            print prod['id'] + ' ' + prod['title']
+            filter_flag = False    
+            ban_word = filter_by_ban_words(prod)
+            if ban_word != '':
+                inv_prod = {}
+                inv_prod['id'] = prod['id']
+                inv_prod['reason'] = 'Filter by word: ' + ban_word
+                print inv_prod['reason']
+                invalid_table.save(inv_prod)
+                filter_flag = True
             elif filter_by_tel(prod['tel']):
                 inv_prod = {}
                 inv_prod['id'] = prod['id']
@@ -167,4 +203,4 @@ def transform(source_table, dest_table):
 
 if __name__ == "__main__":
     transform(temp_table, job_table)
-    transform(vertical_temp_table, vertical_job_table)
+    transform_vertical(vertical_temp_table, vertical_job_table)
