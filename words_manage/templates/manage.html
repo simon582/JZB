@@ -12,7 +12,7 @@
         <input type="text" name="word" value="" id="word">
         <input type="submit" name="submit" value="添加">
         <input type="submit" name="submit" value="删除">
-
+        <a href="/logout/">退出登录</a>
         <p>
         <table>
             <tr>
@@ -30,6 +30,8 @@
                 </tr>
             {% endfor %}
         </table>
+        <a href="/download_temp/">下载初步筛选库</a>
+        <a href="/download_vertical/">下载综合筛选库</a>
     </form>
 {% endblock %}
 

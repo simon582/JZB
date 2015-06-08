@@ -9,7 +9,13 @@ from django.contrib import admin
 admin.autodiscover()
 
 urlpatterns = patterns('',
+    url(r'^login/$',views.login),
+    url(r'^auth/$',views.auth_view),
+    url(r'^invalid/$',views.invalid_login),
+    url(r'^logout/',views.logout),
     url(r'^words_manage/$',views.words_manage),
+    url(r'^download_temp/$',views.download_temp),
+    url(r'^download_vertical/$',views.download_vertical),
     # Examples:
     # url(r'^$', 'mysite.views.home', name='home'),
     # url(r'^mysite/', include('mysite.foo.urls')),

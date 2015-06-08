@@ -15,6 +15,33 @@ import time
 import datetime
 import hashlib
 
+def login(request):
+    c = {}
+    c.update(csrf(request))
+    return render_to_response('login.html', c)
+
+def auth_view(request):
+    username=request.POST.get('username','')
+    password=request.POST.get('password','')
+    user=auth.authenticate(username=username,password=password)
+    if user is not None:
+        auth.login(request,user)
+        return HttpResponseRedirect('/words_manage')
+    else:
+        return HttpResponseRedirect('/invalid')
+
+@login_required(login_url='/login')
+def loggedin(request):
+    return render_to_response('manage.html')
+
+def invalid_login(request):
+    return render_to_response('invalid.html')
+
+@login_required(login_url='/login')
+def logout(request):
+    auth.logout(request)
+    return HttpResponseRedirect('/login')
+
 def get_connection():
     try:
         conn = pymongo.MongoClient()
@@ -54,6 +81,7 @@ def handle_request(request):
         remove_word(cat, word)
 
 @csrf_protect
+@login_required(login_url='/login')
 def words_manage(request):
     if request.method == 'POST':
         handle_request(request)
@@ -102,3 +130,24 @@ def words_manage(request):
     else:
         print 'mongodb connection failed!'
 
+@csrf_protect
+@login_required(login_url='/login')
+def download_temp(request):
+    filename = "temp_table.csv"
+    f = open('/root/jzb/tools/' + filename)
+    data = f.read()
+    f.close()
+    response = HttpResponse(data,content_type='application/octet-stream') 
+    response['Content-Disposition'] = 'attachment; filename=%s' % filename
+    return response
+
+@csrf_protect
+@login_required(login_url='/login')
+def download_vertical(request):
+    filename = "vertical_table.csv"
+    f = open('/root/jzb/tools/' + filename)
+    data = f.read()
+    f.close()
+    response = HttpResponse(data,content_type='application/octet-stream') 
+    response['Content-Disposition'] = 'attachment; filename=%s' % filename
+    return response
